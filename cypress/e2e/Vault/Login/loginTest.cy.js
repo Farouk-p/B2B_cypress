@@ -1,10 +1,11 @@
 /// <reference types="cypress" />
 
-import { LoginPage } from "../pages/loginPage";
+import "cypress-xpath";
+import { LoginPage } from "../../pages/loginPage";
 
 const loginPage = new LoginPage();
 
-describe("B4B Login", function () {
+describe("Validate Login Page", function () {
   beforeEach(function () {
     //Get test data from the file in fixture folder
     cy.fixture("loginTest.json").then(function (test_data) {
@@ -12,31 +13,41 @@ describe("B4B Login", function () {
     });
   });
 
-  it.only("Validate page Title", function () {
-    cy.visit("https://b4bv2-git-develop-pbbamboo.vercel.app/auth/login");
+  it("Validate page Title", function () {
+    cy.visit("https://vault-staging.investbamboo.com");
 
     //Validate page title
-    cy.title().should("contain", "Bamboo 4 Business");
+    cy.title().should("contain", "Bamboo Enterprise");
   });
 
   it("Invalid Login test", function () {
     loginPage.enterUsername(this.test_data.email);
     loginPage.enterPassword(this.test_data.invalid_password);
     loginPage.clickOnLogin();
+    cy.wait(3000);
 
     //Validate Invalid Credentials response is returned
-    cy.get(".css-1ip3h09").should("contain", "Invalid credentials");
+    cy.xpath(
+      '//*[@id="toast-error-Invalid email or password-description"]'
+    ).should("contain", "Invalid email or password");
 
-    loginPage.clearUsernamefield();
-    loginPage.clearPasswordfield();
+    loginPage.cancelToastMessage();
   });
 
-  it.skip("Valid Login test", function () {
+  it("Valid Login test", function () {
+    //clear fields
+    loginPage.clearUsernamefield();
+    loginPage.clearPasswordfield();
+
+    //Enter valid login credentials
     loginPage.enterUsername(this.test_data.email);
     loginPage.enterPassword(this.test_data.password);
     loginPage.clickOnLogin();
 
     //Validate if user was redirected to the OTP page
-    cy.get(".css-19561ge").should("have.text", "Enter verfication code");
+    cy.get(".css-2sxm65 > .chakra-heading").should(
+      "contain",
+      "Enter Verification code"
+    );
   });
 });
